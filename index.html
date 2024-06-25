@@ -3,13 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <title>Lilypad GPU Status</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
 <style>
     body {
         margin: 0;
         padding: 0;
         background-color: #121212; /* Dark background */
         color: #a7ffef; /* lilypad green */
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* More readable font */
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         display: flex;
         justify-content: center;
         align-items: center;
@@ -26,55 +27,87 @@
     }
 
     h1 {
-        position: fixed; /* Changed from absolute for better responsiveness */
-        top: 10px; /* Adjusted margin */
+        position: fixed;
+        top: 10px;
         left: 50%;
         transform: translateX(-50%);
         text-align: center;
         font-size: 2.5rem;
-        color: #ffffff; /* Improved visibility */
+        color: #ffffff;
     }
 
     #uptime-status {
-        width: 90%; /* Adjusted width for better responsiveness */
-        margin-top: 60px; /* Adjusted margin top */
+        width: 90%;
+        margin-top: 60px;
         border: 1px solid #a7ffef;
-        padding: 15px; /* Adjusted padding */
+        padding: 15px;
         box-shadow: 0 0 20px #a7ffef;
         border-radius: 10px;
         overflow: auto;
-        max-height: 75vh; /* Adjusted height */
+        max-height: 75vh;
     }
 
     p {
-        margin: 10px 0; /* Adjusted margin */
-        padding: 15px; /* Adjusted padding */
+        margin: 10px 0;
+        padding: 15px;
         background-color: #000000;
         border-radius: 5px;
         box-shadow: 0 0 10px #a7ffef;
-        line-height: 1.6; /* Adjusted line height */
+        line-height: 1.6;
+        display: flex;
+        align-items: center;
     }
 
     .online { color: #a7ffef; }
     .offline { color: #ff3d00; }
     .gpu-present { font-weight: bold; }
+    .gpu-icon { margin-right: 10px; color: #a7ffef; }
 
-    button {
-        position: fixed; /* Changed from absolute */
+    .toggle-switch {
+        position: fixed;
         top: 10px;
         right: 20px;
-        padding: 10px 20px;
-        font-size: 1rem;
-        background-color: #003d32; /* Themed background */
-        color: #ffffff; /* Text color */
-        border: none; /* No border */
-        border-radius: 5px; /* Rounded corners */
-        cursor: pointer;
-        transition: background-color 0.3s ease;
+        display: inline-block;
+        width: 60px;
+        height: 34px;
     }
 
-    button:hover {
-        background-color: #021d21; /* Darken on hover */
+    .toggle-switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        transition: .4s;
+        border-radius: 34px;
+    }
+
+    .slider:before {
+        position: absolute;
+        content: "";
+        height: 26px;
+        width: 26px;
+        left: 4px;
+        bottom: 4px;
+        background-color: white;
+        transition: .4s;
+        border-radius: 50%;
+    }
+
+    input:checked + .slider {
+        background-color: #a7ffef; /* Changed to lilypad green */
+    }
+
+    input:checked + .slider:before {
+        transform: translateX(26px);
     }
 
     /* Styling the scrollbar */
@@ -97,7 +130,10 @@
 </head>
 <body>
 <h1>Lilypad GPU Status</h1>
-<button onclick="toggleOffline()">Toggle Offline Nodes</button>
+<label class="toggle-switch">
+  <input type="checkbox" onclick="toggleOffline()">
+  <span class="slider"></span>
+</label>
 <div id="uptime-status"></div>
 <script>
 let showOffline = false;
@@ -110,13 +146,21 @@ async function fetchUptimeData() {
         const container = document.getElementById('uptime-status');
         container.innerHTML = ''; // Clear previous contents
 
+        // Sort nodes: GPU nodes first, then by online status
+        nodes.sort((a, b) => (b.GPU - a.GPU) || (b.Online - a.Online));
+
         nodes.forEach(node => {
             if (node.Online || showOffline) {
                 const element = document.createElement('p');
+                const icon = document.createElement('i');
+                icon.className = 'fas fa-microchip gpu-icon';
                 const onlineStatus = node.Online ? 'Online' : 'Offline';
                 const connectedSince = node.ConnectedSince ? new Date(node.ConnectedSince).toLocaleString() : 'N/A';
                 const gpuPresence = node.GPU > 0 ? ' (GPU Present)' : '';
                 element.textContent = `Wallet Address: ${node.ID} - ${onlineStatus}${gpuPresence}, Connected Since: ${connectedSince}, CPU: ${node.CPU}, RAM: ${node.RAM}MB, Location: ${node.CountryCode}`;
+                if (node.GPU > 0) {
+                    element.prepend(icon);
+                }
                 element.className = onlineStatus.toLowerCase() + (node.GPU > 0 ? ' gpu-present' : '');
                 container.appendChild(element);
             }
