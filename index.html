@@ -136,46 +136,46 @@
 </label>
 <div id="uptime-status"></div>
 <script>
-let showOffline = false;
-
-async function fetchUptimeData() {
-    try {
-        const response = await fetch('https://api-testnet.lilypad.tech/metrics-dashboard/nodes');
-        if (!response.ok) throw new Error('Network response was not ok');
-        const nodes = await response.json();
-        const container = document.getElementById('uptime-status');
-        container.innerHTML = ''; // Clear previous contents
-
-        // Sort nodes: GPU nodes first, then by online status
-        nodes.sort((a, b) => (b.GPU - a.GPU) || (b.Online - a.Online));
-
-        nodes.forEach(node => {
-            if (node.Online || showOffline) {
-                const element = document.createElement('p');
-                const icon = document.createElement('i');
-                icon.className = 'fas fa-microchip gpu-icon';
-                const onlineStatus = node.Online ? 'Online' : 'Offline';
-                const connectedSince = node.ConnectedSince ? new Date(node.ConnectedSince).toLocaleString() : 'N/A';
-                const gpuPresence = node.GPU > 0 ? ' (GPU Present)' : '';
-                element.textContent = `Wallet Address: ${node.ID} - ${onlineStatus}${gpuPresence}, Connected Since: ${connectedSince}, CPU: ${node.CPU}, RAM: ${node.RAM}MB, Location: ${node.CountryCode}`;
-                if (node.GPU > 0) {
-                    element.prepend(icon);
+    let showOffline = false;
+    const refreshInterval = 30000; // 30 seconds interval
+    
+    async function fetchUptimeData() {
+        try {
+            const response = await fetch('https://api-testnet.lilypad.tech/metrics-dashboard/nodes');
+            if (!response.ok) throw new Error('Network response was not ok');
+            const nodes = await response.json();
+            const container = document.getElementById('uptime-status');
+            container.innerHTML = ''; // Clear previous contents
+    
+            // Sort nodes: GPU nodes first, then by online status
+            nodes.sort((a, b) => (b.GPU - a.GPU) || (b.Online - a.Online));
+    
+            nodes.forEach(node => {
+                if (node.Online || showOffline) {
+                    const element = document.createElement('p');
+                    const icon = document.createElement('i');
+                    icon.className = 'fas fa-microchip gpu-icon';
+                    const onlineStatus = node.Online ? 'Online' : 'Offline';
+                    const connectedSince = node.ConnectedSince ? new Date(node.ConnectedSince).toLocaleString() : 'N/A';
+                    const gpuPresence = node.GPU > 0 ? ' (GPU Present)' : '';
+                    element.textContent = `Wallet Address: ${node.ID} - ${onlineStatus}${gpuPresence}, Connected Since: ${connectedSince}, CPU: ${node.CPU}, RAM: ${node.RAM}MB, Location: ${node.CountryCode}`;
+                    if (node.GPU > 0) {
+                        element.prepend(icon);
+                    }
+                    element.className = onlineStatus.toLowerCase() + (node.GPU > 0 ? ' gpu-present' : '');
+                    container.appendChild(element);
                 }
-                element.className = onlineStatus.toLowerCase() + (node.GPU > 0 ? ' gpu-present' : '');
-                container.appendChild(element);
-            }
-        });
-    } catch (error) {
-        console.error('Fetch error:', error);
+            });
+        } catch (error) {
+            console.error('Fetch error:', error);
+        }
     }
-}
-
-function toggleOffline() {
-    showOffline = !showOffline;
+    
+    function toggleOffline() {
+        showOffline = !showOffline;
+        fetchUptimeData();
+    }
+    
     fetchUptimeData();
-}
-
-fetchUptimeData();
-</script>
-</body>
-</html>
+    setInterval(fetchUptimeData, refreshInterval); // Setup auto-refresh every 30 seconds
+    </script>
