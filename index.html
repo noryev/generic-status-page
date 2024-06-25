@@ -116,7 +116,7 @@ async function fetchUptimeData() {
                 const onlineStatus = node.Online ? 'Online' : 'Offline';
                 const connectedSince = node.ConnectedSince ? new Date(node.ConnectedSince).toLocaleString() : 'N/A';
                 const gpuPresence = node.GPU > 0 ? ' (GPU Present)' : '';
-                element.textContent = `Resource ID: ${node.ID} - ${onlineStatus}${gpuPresence}, Connected Since: ${connectedSince}, CPU: ${node.CPU}, RAM: ${node.RAM}MB, Location: ${node.CountryCode}`;
+                element.textContent = `Wallet Address: ${node.ID} - ${onlineStatus}${gpuPresence}, Connected Since: ${connectedSince}, CPU: ${node.CPU}, RAM: ${node.RAM}MB, Location: ${node.CountryCode}`;
                 element.className = onlineStatus.toLowerCase() + (node.GPU > 0 ? ' gpu-present' : '');
                 container.appendChild(element);
             }
